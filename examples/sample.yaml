@@ -1,0 +1,5 @@
+event_table:
+  name: user_events
+  multi_tenant: true
+  expected_events_per_day: 50000000
+  retention_days: 90
