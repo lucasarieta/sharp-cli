@@ -120,4 +120,31 @@ mod tests {
             "tuple(project_id, toYYYYMMDD(timestamp))"
         );
     }
+
+    #[test]
+    fn explain_monthly() {
+        let w = profile(1_000_000, false);
+        let explanation = PartitionStrategy::Monthly.explain(&w);
+        assert!(explanation.contains("Monthly partitioning"));
+        assert!(explanation.contains("1000000"));
+        assert!(explanation.contains("5M threshold"));
+    }
+
+    #[test]
+    fn explain_daily() {
+        let w = profile(50_000_000, false);
+        let explanation = PartitionStrategy::Daily.explain(&w);
+        assert!(explanation.contains("Daily partitioning"));
+        assert!(explanation.contains("50000000"));
+        assert!(explanation.contains("5M–200M"));
+    }
+
+    #[test]
+    fn explain_daily_with_tenant() {
+        let w = profile(500_000_000, true);
+        let explanation = PartitionStrategy::DailyWithTenant.explain(&w);
+        assert!(explanation.contains("Daily + tenant"));
+        assert!(explanation.contains("500000000"));
+        assert!(explanation.contains("multi-tenant"));
+    }
 }

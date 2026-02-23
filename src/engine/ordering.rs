@@ -112,4 +112,44 @@ mod tests {
         let cols: Vec<String> = ["a", "b", "c"].into_iter().map(String::from).collect();
         assert_eq!(order_by_sql(&cols), "ORDER BY (a, b, c)");
     }
+
+    #[test]
+    fn explain_single_tenant_standard_volume() {
+        let w = profile(1_000_000, false);
+        let cols = choose_order_by(&w);
+        let explanation = explain(&w, &cols);
+        assert!(explanation.contains("Single-tenant"));
+        assert!(explanation.contains("Standard volume"));
+        assert!(explanation.contains("event_name before timestamp"));
+    }
+
+    #[test]
+    fn explain_multi_tenant_standard_volume() {
+        let w = profile(1_000_000, true);
+        let cols = choose_order_by(&w);
+        let explanation = explain(&w, &cols);
+        assert!(explanation.contains("Multi-tenant"));
+        assert!(explanation.contains("project_id leads"));
+        assert!(explanation.contains("Standard volume"));
+    }
+
+    #[test]
+    fn explain_single_tenant_high_volume() {
+        let w = profile(200_000_000, false);
+        let cols = choose_order_by(&w);
+        let explanation = explain(&w, &cols);
+        assert!(explanation.contains("Single-tenant"));
+        assert!(explanation.contains("High volume"));
+        assert!(explanation.contains("timestamp promoted"));
+    }
+
+    #[test]
+    fn explain_multi_tenant_high_volume() {
+        let w = profile(200_000_000, true);
+        let cols = choose_order_by(&w);
+        let explanation = explain(&w, &cols);
+        assert!(explanation.contains("Multi-tenant"));
+        assert!(explanation.contains("High volume"));
+        assert!(explanation.contains("Final key:"));
+    }
 }
